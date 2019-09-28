@@ -57,12 +57,11 @@ has generate_definitions_path => sub {
     my @path;
 
     # Try to determin the path from the fqn
-    if ($ref->fqn =~ m|^(.*)#(.+)$|) {
+    if ($ref->fqn =~ m|^(.*)#/(.+)$|) {
       my $relative = $1;
       my $path     = $2;
 
       @path = split '/', $path;
-      shift @path;
       pop @path;
     }
 
