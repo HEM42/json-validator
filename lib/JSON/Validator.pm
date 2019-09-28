@@ -51,7 +51,24 @@ has formats => sub { shift->_build_formats };
 has generate_definitions_path => sub {
   my $self = shift;
   Scalar::Util::weaken($self);
-  return sub { [$self->{definitions_key} || 'definitions'] };
+
+  return sub {
+    my $ref = shift;
+    my @path;
+
+    # Try to determin the path from the fqn
+    if ($ref->fqn =~ m|^(.*)#(.+)$|) {
+      my $relative = $1;
+      my $path     = $2;
+
+      @path = split '/', $path;
+      shift @path;
+      pop @path;
+    }
+
+    if   (@path) { \@path }
+    else         { [$self->{definitions_key} || 'definitions'] }
+  };
 };
 
 has version => 4;

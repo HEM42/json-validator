@@ -102,6 +102,23 @@ is_deeply(
   'subset of schema was bundled'
 ) or diag explain $bundled;
 
+note 'extract subset of schema with references going deeper';
+$jv->schema('data://main/bundled_v3.json');
+$bundled = $jv->bundle({schema => $jv->get([qw(paths /withdots get)])});
+is_deeply(
+  $bundled,
+  {
+    components => {
+      schemas => {
+        objtype =>
+          {properties => {propname => {type => 'string'}}, type => 'object'}
+      }
+    },
+    responses => {200 => {schema => {'$ref' => '#/components/schemas/objtype'}}}
+  },
+  'subset of schema was bundled'
+) or diag explain $bundled;
+
 note 'no leaking path';
 my $ref_name_prefix = $workdir;
 $ref_name_prefix =~ s![^\w-]!_!g;
@@ -124,8 +141,6 @@ $bundled = $jv->bundle;
 is @deep,  2, 'even deeper present' or diag join ', ', @deep;
 is @other, 3, 'other present'       or diag join ', ', @other;
 
-warn Data::Dumper::Dumper($bundled);
-
 done_testing;
 
 __DATA__
@@ -142,6 +157,27 @@ __DATA__
       "get": {
         "responses": {
           "200": {"schema": {"$ref": "#/definitions/objtype"}}
+        }
+      }
+    }
+  }
+}
+
+@@ bundled_v3.json
+{
+  "components": {
+    "schemas": {
+      "objtype": {
+        "type": "object",
+        "properties": {"propname": {"type": "string"}}
+      }
+    }
+  },
+  "paths": {
+    "/withdots": {
+      "get": {
+        "responses": {
+          "200": {"schema": {"$ref": "#/components/schemas/objtype"}}
         }
       }
     }
