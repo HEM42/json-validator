@@ -26,8 +26,10 @@ use constant YAML_SUPPORT      => eval 'use YAML::XS 0.67;1';
 our $VERSION   = '3.25';
 our @EXPORT_OK = qw(joi validate_json);
 
-# TODO
-our %SCHEMAS = ();
+our %SCHEMAS = (
+  'http://swagger.io/v2/schema.json'                    => '+OpenAPIv2',
+  'https://spec.openapis.org/oas/3.0/schema/2019-04-02' => '+OpenAPIv3',
+);
 
 my $BUNDLED_CACHE_DIR = path(path(__FILE__)->dirname, qw(Validator cache));
 my $HTTP_SCHEME_RE    = qr{^https?:};

@@ -2,11 +2,25 @@ package t::Helper;
 use Mojo::Base -base;
 
 use JSON::Validator;
+use Mojo::File;
 use Mojo::JSON 'encode_json';
 use Mojo::Util 'monkey_patch';
 use Test::More;
 
 $ENV{TEST_VALIDATOR_CLASS} = 'JSON::Validator';
+
+sub controller {
+  require Mojolicious;
+  my ($class, $params) = @_;
+
+  state $app = Mojolicious->new;
+  $app->helper('openapi.get_request_data' =>
+      sub { $params->{get_params} = $_[1]; $params->{get_req} });
+  $app->helper(
+    'openapi.set_request_data' => sub { $params->{set_params} = $_[1] });
+
+  return $app->build_controller;
+}
 
 sub edj {
   return Mojo::JSON::decode_json(Mojo::JSON::encode_json(@_));
