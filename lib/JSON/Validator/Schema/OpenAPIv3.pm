@@ -121,6 +121,11 @@ sub _response_schema {
 sub _sub_schemas         { shift->data->{components}{schemas} ||= {} }
 sub _sub_schemas_pointer {'#/components/schemas'}
 
+sub _get_parameter_schema {
+  my ($self, $parameter, $request) = @_;
+  return $parameter->{accepts}{$request->{content_type}}{schema};
+}
+
 sub _validate_request_parameters {
   my ($self, $parameters, $request) = @_;
   my @errors;
@@ -131,6 +136,9 @@ sub _validate_request_parameters {
   # [in, name, exists, value, content_type] or [in, name, exists, value]
   for my $param (@$parameters) {
     my $req = $request->{_param_key($param)} || {};
+
+    # Handling defaults
+    $self->_handle_defaults($param,$req);
 
     if ($param->{required} and !$req->{exists}) {
       push @errors, E "/$param->{name}", [qw(object required)];

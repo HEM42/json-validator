@@ -259,6 +259,41 @@ sub _response_schema {
 sub _sub_schemas         { shift->data->{definitions} ||= {} }
 sub _sub_schemas_pointer {'#/definitions'}
 
+sub _handle_defaults {
+  my ($self, $param, $req) = @_;
+
+    if ($req->{in} eq 'body') {
+      my $schema = $self->_get_parameter_schema($param,$req);
+      $schema = $self->_ref_to_schema($schema)
+        if ref $schema eq 'HASH' and $schema->{'$ref'};
+
+      for my $k (keys %{$schema->{properties}}) {
+        my ($default, $got_default)
+          = $self->_get_default_value_from_parameter($schema->{properties}{$k});
+        $req->{value}{$k} = $default
+          if $got_default && !exists $req->{value}{$k};
+      }
+    } else {
+        my ($default, $got_default)
+          = $self->_get_default_value_from_parameter($param);
+        if ( $got_default ) {
+          unless ( keys %$req ) {
+            $req = {
+              in => $param->{in},
+              name => $param->{name},
+            };
+          }
+          $req->{value} = $default;
+          $req->{exists} = 1;
+        }
+    }
+}
+
+sub _get_parameter_schema {
+  my ($self, $param, $req) = @_;
+  return $param->{schema};
+}
+
 sub _validate_request_parameters {
   my ($self, $parameters, $request) = @_;
   my @errors;
@@ -269,6 +304,9 @@ sub _validate_request_parameters {
   # [in, name, exists, value, content_type] or [in, name, exists, value]
   for my $param (@$parameters) {
     my $req = $request->{_param_key($param)} || {};
+
+    # Handle defaults
+    $self->_handle_defaults($param,$req);
 
     if ($param->{required} and !$req->{exists}) {
       push @errors, E "/$param->{name}", [qw(object required)];
