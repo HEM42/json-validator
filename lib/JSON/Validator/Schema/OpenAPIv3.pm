@@ -137,8 +137,8 @@ sub _validate_request_parameters {
   for my $param (@$parameters) {
     my $req = $request->{_param_key($param)} || {};
 
-    # Handling defaults
-    $self->_handle_defaults($param,$req);
+    # Handle defaults, unless coerce:defaults enabled (for testing)
+    $self->_handle_defaults($param,$req) unless $self->coerce->{defaults};
 
     if ($param->{required} and !$req->{exists}) {
       push @errors, E "/$param->{name}", [qw(object required)];

@@ -267,12 +267,8 @@ sub _handle_defaults {
       $schema = $self->_ref_to_schema($schema)
         if ref $schema eq 'HASH' and $schema->{'$ref'};
 
-      for my $k (keys %{$schema->{properties}}) {
-        my ($default, $got_default)
-          = $self->_get_default_value_from_parameter($schema->{properties}{$k});
-        $req->{value}{$k} = $default
-          if $got_default && !exists $req->{value}{$k};
-      }
+      $self->_handle_defaults_properties($schema->{properties}, $req->{value});
+
     } else {
         my ($default, $got_default)
           = $self->_get_default_value_from_parameter($param);
@@ -287,6 +283,20 @@ sub _handle_defaults {
           $req->{exists} = 1;
         }
     }
+}
+
+sub _handle_defaults_properties {
+  my ($self, $properties, $request_value) = @_;
+  while (my ($k, $v) = each %$properties) {
+    if (exists $v->{properties}) {
+      $self->_handle_defaults_properties($v->{properties},
+        $request_value->{$k});
+      next;
+    }
+    my ($default, $got_default) = $self->_get_default_value_from_parameter($v);
+    $request_value->{$k} = $default
+      if $got_default && !exists $request_value->{$k};
+  }
 }
 
 sub _get_parameter_schema {
@@ -305,8 +315,8 @@ sub _validate_request_parameters {
   for my $param (@$parameters) {
     my $req = $request->{_param_key($param)} || {};
 
-    # Handle defaults
-    $self->_handle_defaults($param,$req);
+    # Handle defaults, unless coerce:defaults enabled (for testing)
+    $self->_handle_defaults($param,$req) unless $self->coerce->{defaults};
 
     if ($param->{required} and !$req->{exists}) {
       push @errors, E "/$param->{name}", [qw(object required)];
