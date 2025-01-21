@@ -191,7 +191,7 @@ sub _load_from_url {
 
   if ($cache_path and $cache_path ne BUNDLED_PATH and -w $cache_path) {
     $cache_file = path $cache_path, $cache_file;
-    $cache_file->spurt($tx->res->body);
+    $cache_file->spew($tx->res->body);
   }
 
   warn "[JSON::Validator] Load from URL $url\n" if DEBUG;

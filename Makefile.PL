@@ -63,7 +63,7 @@ my %WriteMakefileArgs = (
       'Zoffix Znet <cpan@zoffix.com>',
     ],
   },
-  PREREQ_PM     => {'List::Util' => '1.45', 'Mojolicious' => '7.28', 'perl' => 'v5.16.0', @PREREQ_YAML},
+  PREREQ_PM     => {'List::Util' => '1.45', 'Mojolicious' => '9.34', 'perl' => 'v5.16.0', @PREREQ_YAML},
   TEST_REQUIRES => {'Test::More' => '1.30', 'Test::Deep'  => '0'},
   test          => {TESTS        => (-e 'META.yml' ? 't/*.t' : 't/*.t xt/*.t')},
 );
